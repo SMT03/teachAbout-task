@@ -1,0 +1,35 @@
+Method - TECHi category scrape (techi_articles.csv)
+
+Script: scrape_techi.py (Python 3, requests + BeautifulSoup).
+
+Collection
+1. For each of six sections, GET its canonical category page:
+   ai -> /category/ai-intelligence/, markets -> /category/markets-equities/,
+   crypto -> /category/crypto-defi/, breakthroughs -> /category/tech-breakthroughs/,
+   policy -> /category/policy-impact/, guides -> /category/research-tools-guides/.
+   The short URLs (/category/ai/, ...) 404 or redirect.
+2. Sleep 2 seconds between every request; six requests in total.
+3. Each listing server-renders its cards newest-first as
+   <article class="techi-article-card">. Take the first 20.
+4. Fields: url (card's first href), section label, headline (<h2>), author
+   (the /@... link), date_shown (verbatim <time> text, never reformatted),
+   headline_word_count (whitespace-separated tokens).
+5. Validate all 120 rows for blank values and print per-section counts; abort
+   instead of saving if any blank exists.
+
+Derived rules (headline text only; deterministic, no APIs, no models)
+- format, first match wins: "question" if it ends with "?"; else "how-to" if
+  it starts with "How"; else "list" if it starts with "Top <n>", with
+  "<n> <list-noun>" (best, ways, things, tips, tools, reasons, examples,
+  steps, trends, picks, alternatives, mistakes, lessons, platforms) or with
+  "Best"; otherwise "standard".
+- names_a_company: True if the lowercased headline matches a fixed ~85-entry
+  company/alias list at word boundaries; otherwise False.
+- contains_a_number: True if any digit 0-9 appears; otherwise False.
+
+Limitations
+- Recency bias: only the 20 newest cards per section are kept, so the file
+  spans 2026-05-18..2026-11-09 and cannot represent earlier periods.
+- Card-level fields only: no article body, views, sessions, or engagement.
+- The company list is hard-coded, so unlisted firms are missed, and relative
+  dates ("6 hours ago") carry no absolute timestamp.
